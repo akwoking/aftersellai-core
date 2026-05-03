@@ -1,63 +1,119 @@
-import React from 'react';
-import { MoreHorizontal, ExternalLink } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { MoreHorizontal, Eye, CheckCircle, Clock, AlertTriangle } from 'lucide-react';
+import { useState } from 'react';
 
-const activities = [
-  { id: 1, user: 'Sophia Williams', type: 'Design Project', amount: '$4,200', date: '2 mins ago', status: 'Completed' },
-  { id: 2, user: 'James Miller', type: 'Consultation', amount: '$1,500', date: '15 mins ago', status: 'Pending' },
-  { id: 3, user: 'Olivia Brown', type: 'Maintenance', amount: '$850', date: '45 mins ago', status: 'Completed' },
-  { id: 4, user: 'Ethan Davis', type: 'Development', amount: '$12,000', date: '1 hour ago', status: 'Declined' },
-  { id: 5, user: 'Emma Wilson', type: 'License Renewal', amount: '$2,400', date: '3 hours ago', status: 'Completed' },
+const statusConfig: Record<string, { icon: React.ReactNode; color: string; bg: string }> = {
+  DELIVERED: {
+    icon: <CheckCircle size={14} />,
+    color: 'text-green-400',
+    bg: 'bg-green-400/10',
+  },
+  PENDING: {
+    icon: <Clock size={14} />,
+    color: 'text-yellow-400',
+    bg: 'bg-yellow-400/10',
+  },
+  'ACTION REQUIRED': {
+    icon: <AlertTriangle size={14} />,
+    color: 'text-red-400',
+    bg: 'bg-red-400/10',
+  },
+};
+
+const messages = [
+  {
+    date: 'Oct 24, 2023 09:42 AM',
+    customerEmail: 'sarah.j@example.com',
+    product: 'Enterprise Core',
+    messagePreview: 'Thank you for your inquiry about the Enterprise Core. I\'d recommend pairing it with...',
+    status: 'DELIVERED',
+  },
+  {
+    date: 'Oct 24, 2023 08:15 AM',
+    customerEmail: 'm.chen@techsolutions.io',
+    product: 'Analytics Suite',
+    messagePreview: 'I\'ve flagged this billing discrepancy for immediate review. Expect a resolution...',
+    status: 'ACTION REQUIRED',
+  },
+  {
+    date: 'Oct 23, 2023 04:30 PM',
+    customerEmail: 'david.ross@globalfin.com',
+    product: 'Cloud Bridge',
+    messagePreview: 'Your trial period is nearing its end. Here\'s an exclusive offer to upgrade...',
+    status: 'PENDING',
+  },
+  {
+    date: 'Oct 23, 2023 01:12 PM',
+    customerEmail: 'linda.smith@retailco.com',
+    product: 'Enterprise Core',
+    messagePreview: 'Confirming your appointment for the architecture overview session...',
+    status: 'DELIVERED',
+  },
+  {
+    date: 'Oct 22, 2023 11:05 AM',
+    customerEmail: 'kevin.v@startuplabs.io',
+    product: 'Analytics Suite',
+    messagePreview: 'I\'ve updated your dashboard views to include the new KPIs we discussed...',
+    status: 'DELIVERED',
+  },
 ];
 
-export function ActivityTable() {
+export default function ActivityTable() {
   return (
-    <div className="dashboard-card flex flex-col">
-      <div className="p-4 md:p-6 border-b border-zinc-100 flex items-center justify-between">
-        <h3 className="text-lg font-bold text-zinc-900">Recent Transactions</h3>
-        <button className="text-sm font-medium text-zinc-500 hover:text-zinc-900 transition-colors flex items-center gap-1">
-          View All <ExternalLink className="w-3 h-3" />
+    <div className="bg-[#0F1623] rounded-xl border border-[#1F2937] p-4">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-white font-medium text-sm">Communication Log</h3>
+        <button className="text-gray-400 hover:text-white">
+          <MoreHorizontal size={16} />
         </button>
       </div>
-      <div className="overflow-x-auto scrollbar-hide">
-        <div className="min-w-[800px] lg:min-w-full">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="bg-zinc-50/50 text-zinc-500 text-xs uppercase tracking-wider">
-                <th className="px-6 py-4 font-semibold">User</th>
-                <th className="px-6 py-4 font-semibold">Project Type</th>
-                <th className="px-6 py-4 font-semibold">Amount</th>
-                <th className="px-6 py-4 font-semibold">Date</th>
-                <th className="px-6 py-4 font-semibold text-right">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-zinc-100">
-              {activities.map((item) => (
-                <tr key={item.id} className="hover:bg-zinc-50 transition-all cursor-pointer group">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center text-xs font-medium text-zinc-600">
-                        {item.user.split(' ').map(n => n[0]).join('')}
-                      </div>
-                      <span className="text-sm font-medium text-zinc-900">{item.user}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-zinc-600 whitespace-nowrap">{item.type}</td>
-                  <td className="px-6 py-4 text-sm font-semibold text-zinc-900 whitespace-nowrap">{item.amount}</td>
-                  <td className="px-6 py-4 text-sm text-zinc-500 whitespace-nowrap">{item.date}</td>
-                  <td className="px-6 py-4 text-right">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      item.status === 'Completed' ? 'bg-emerald-50 text-emerald-700' :
-                      item.status === 'Pending' ? 'bg-amber-50 text-amber-700' :
-                      'bg-rose-50 text-rose-700'
-                    }`}>
-                      {item.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-[#1F2937] text-gray-400 text-xs">
+              <th className="text-left py-2 pr-2">Date</th>
+              <th className="text-left py-2 px-2">Customer Email</th>
+              <th className="text-left py-2 px-2">Product</th>
+              <th className="text-left py-2 px-2">AI Message Preview</th>
+              <th className="text-center py-2 pl-2">Status</th>
+              <th className="py-2 pl-2"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {messages.map((msg, index) => (
+              <motion.tr
+                key={index}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+                className="border-b border-[#1F2937] last:border-0 text-gray-300 hover:bg-[#131A2A] transition-colors"
+              >
+                <td className="py-3 pr-2 text-xs text-gray-400">{msg.date}</td>
+                <td className="py-3 px-2 text-xs">{msg.customerEmail}</td>
+                <td className="py-3 px-2 text-xs">{msg.product}</td>
+                <td className="py-3 px-2 text-xs max-w-[250px] truncate">{msg.messagePreview}</td>
+                <td className="py-3 px-2 text-center">
+                  <span
+                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
+                      statusConfig[msg.status]?.bg
+                    } ${statusConfig[msg.status]?.color}`}
+                  >
+                    {statusConfig[msg.status]?.icon}
+                    {msg.status}
+                  </span>
+                </td>
+                <td className="py-3 pl-2">
+                  <button className="text-gray-400 hover:text-white">
+                    <Eye size={14} />
+                  </button>
+                </td>
+              </motion.tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="mt-3 text-xs text-gray-500">
+        Showing 5 of 1,284 interactions
       </div>
     </div>
   );
