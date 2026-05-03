@@ -1,6 +1,5 @@
-import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   LayoutDashboard,
   MessageSquare,
@@ -8,6 +7,7 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  X,
 } from 'lucide-react';
 
 const navItems = [
@@ -22,30 +22,47 @@ interface SidebarProps {
   setCollapsed: (collapsed: boolean) => void;
   activePage: string;
   setActivePage: (page: string) => void;
+  mobileOpen: boolean;
+  setMobileOpen: (open: boolean) => void;
+  isMobile: boolean;
 }
 
-export default function Sidebar({ collapsed, setCollapsed, activePage, setActivePage }: SidebarProps) {
+export default function Sidebar({
+  collapsed,
+  setCollapsed,
+  activePage,
+  setActivePage,
+  mobileOpen,
+  setMobileOpen,
+  isMobile,
+}: SidebarProps) {
   const location = useLocation();
-
-  // Determine active page based on current route
   const currentPath = location.pathname;
-  const currentItem = navItems.find(item => item.path === currentPath);
+  const currentItem = navItems.find((item) => item.path === currentPath);
   const activeItemId = currentItem ? currentItem.id : 'overview';
 
   return (
     <motion.aside
-      animate={{ width: collapsed ? 80 : 260 }}
-      className="bg-[#0A0F1E] border-r border-[#1F2937] h-screen flex flex-col sticky top-0"
+      animate={{ width: isMobile ? 260 : collapsed ? 80 : 260 }}
+      className="bg-[#0A0F1E] border-r border-[#1F2937] h-full flex flex-col relative"
     >
       {/* Logo area */}
-      <div className="h-16 flex items-center justify-center border-b border-[#1F2937] px-4">
-        {collapsed ? (
+      <div className="h-16 flex items-center justify-between border-b border-[#1F2937] px-4">
+        {collapsed && !isMobile ? (
           <span className="text-white font-bold text-lg">AS</span>
         ) : (
           <div className="flex items-center gap-2">
             <img src="/logo.png" alt="AfterSell AI" className="h-8" />
             <span className="text-white font-semibold text-sm tracking-wide">AfterSell AI</span>
           </div>
+        )}
+        {isMobile && (
+          <button
+            onClick={() => setMobileOpen(false)}
+            className="text-gray-400 hover:text-white"
+          >
+            <X size={20} />
+          </button>
         )}
       </div>
 
@@ -58,7 +75,10 @@ export default function Sidebar({ collapsed, setCollapsed, activePage, setActive
             <Link
               key={item.id}
               to={item.path}
-              onClick={() => setActivePage(item.id)}
+              onClick={() => {
+                setActivePage(item.id);
+                if (isMobile) setMobileOpen(false);
+              }}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
                 isActive
                   ? 'bg-[#1A2236] text-[#F97316]'
@@ -66,19 +86,21 @@ export default function Sidebar({ collapsed, setCollapsed, activePage, setActive
               }`}
             >
               <Icon size={20} />
-              {!collapsed && <span className="text-sm font-medium">{item.label}</span>}
+              {!collapsed || isMobile ? <span className="text-sm font-medium">{item.label}</span> : null}
             </Link>
           );
         })}
       </nav>
 
-      {/* Collapse toggle */}
-      <button
-        onClick={() => setCollapsed(!collapsed)}
-        className="flex items-center justify-center h-12 border-t border-[#1F2937] text-gray-400 hover:text-white transition-colors"
-      >
-        {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
-      </button>
+      {/* Desktop collapse toggle */}
+      {!isMobile && (
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="flex items-center justify-center h-12 border-t border-[#1F2937] text-gray-400 hover:text-white transition-colors"
+        >
+          {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+        </button>
+      )}
     </motion.aside>
   );
 }
