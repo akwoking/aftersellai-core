@@ -1,6 +1,8 @@
 import { motion } from 'framer-motion';
 import { MoreHorizontal, Eye, CheckCircle, Clock, AlertTriangle } from 'lucide-react';
 import { useState } from 'react';
+import api from '../services/api';
+
 
 const statusConfig: Record<string, { icon: React.ReactNode; color: string; bg: string }> = {
   DELIVERED: {
@@ -18,6 +20,26 @@ const statusConfig: Record<string, { icon: React.ReactNode; color: string; bg: s
     color: 'text-red-400',
     bg: 'bg-red-400/10',
   },
+};
+
+const [sending, setSending] = useState(false);
+
+const handleSendTest = async () => {
+  setSending(true);
+  try {
+    const response = await api.post('/simulate-order', {
+      customer_email: 'YOUR_GMAIL@gmail.com',
+      product_name: 'Wireless Bluetooth Headphones',
+      related_products: ['Headphone Stand', 'Bluetooth Adapter'],
+      tone: 'friendly',
+    });
+    alert('Test email sent! Check your inbox.');
+  } catch (error) {
+    console.error(error);
+    alert('Failed to send email.');
+  } finally {
+    setSending(false);
+  }
 };
 
 const messages = [
@@ -63,8 +85,9 @@ export default function ActivityTable() {
     <div className="bg-[#0F1623] rounded-xl border border-[#1F2937] p-4">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-white font-medium text-sm">Communication Log</h3>
-        <button className="text-gray-400 hover:text-white">
+        <button className="text-gray-400 hover:text-white" onClick={handleSendTest} disabled={sending}>
           <MoreHorizontal size={16} />
+          {sending ? 'Sending...' : 'Send Test Follow-Up'}
         </button>
       </div>
       <div className="overflow-x-auto">
