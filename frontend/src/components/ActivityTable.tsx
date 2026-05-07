@@ -3,7 +3,6 @@ import { MoreHorizontal, Eye, CheckCircle, Clock, AlertTriangle } from 'lucide-r
 import { useState } from 'react';
 import api from '../services/api';
 
-
 const statusConfig: Record<string, { icon: React.ReactNode; color: string; bg: string }> = {
   DELIVERED: {
     icon: <CheckCircle size={14} />,
@@ -22,74 +21,85 @@ const statusConfig: Record<string, { icon: React.ReactNode; color: string; bg: s
   },
 };
 
-const [sending, setSending] = useState(false);
-
-const handleSendTest = async () => {
-  setSending(true);
-  try {
-    const response = await api.post('/simulate-order', {
-      customer_email: 'YOUR_GMAIL@gmail.com',
-      product_name: 'Wireless Bluetooth Headphones',
-      related_products: ['Headphone Stand', 'Bluetooth Adapter'],
-      tone: 'friendly',
-    });
-    alert('Test email sent! Check your inbox.');
-  } catch (error) {
-    console.error(error);
-    alert('Failed to send email.');
-  } finally {
-    setSending(false);
-  }
-};
-
 const messages = [
   {
     date: 'Oct 24, 2023 09:42 AM',
     customerEmail: 'sarah.j@example.com',
     product: 'Enterprise Core',
-    messagePreview: 'Thank you for your inquiry about the Enterprise Core. I\'d recommend pairing it with...',
+    messagePreview: "Thank you for your inquiry about the Enterprise Core. I'd recommend pairing it with...",
     status: 'DELIVERED',
   },
   {
     date: 'Oct 24, 2023 08:15 AM',
     customerEmail: 'm.chen@techsolutions.io',
     product: 'Analytics Suite',
-    messagePreview: 'I\'ve flagged this billing discrepancy for immediate review. Expect a resolution...',
+    messagePreview: "I've flagged this billing discrepancy for immediate review. Expect a resolution...",
     status: 'ACTION REQUIRED',
   },
   {
     date: 'Oct 23, 2023 04:30 PM',
     customerEmail: 'david.ross@globalfin.com',
     product: 'Cloud Bridge',
-    messagePreview: 'Your trial period is nearing its end. Here\'s an exclusive offer to upgrade...',
+    messagePreview: "Your trial period is nearing its end. Here's an exclusive offer to upgrade...",
     status: 'PENDING',
   },
   {
     date: 'Oct 23, 2023 01:12 PM',
     customerEmail: 'linda.smith@retailco.com',
     product: 'Enterprise Core',
-    messagePreview: 'Confirming your appointment for the architecture overview session...',
+    messagePreview: "Confirming your appointment for the architecture overview session...",
     status: 'DELIVERED',
   },
   {
     date: 'Oct 22, 2023 11:05 AM',
     customerEmail: 'kevin.v@startuplabs.io',
     product: 'Analytics Suite',
-    messagePreview: 'I\'ve updated your dashboard views to include the new KPIs we discussed...',
+    messagePreview: "I've updated your dashboard views to include the new KPIs we discussed...",
     status: 'DELIVERED',
   },
 ];
 
 export default function ActivityTable() {
+  const [sending, setSending] = useState(false);
+
+  const handleSendTest = async () => {
+    setSending(true);
+    try {
+      const response = await api.post('/simulate-order', {
+        customer_email: 'akwomakkingguersho@gmail.com',
+        product_name: 'Wireless Bluetooth Headphones',
+        related_products: ['Headphone Stand', 'Bluetooth Adapter'],
+        tone: 'friendly',
+      });
+      alert('Test email sent! Check your inbox.');
+    } catch (error) {
+      console.error(error);
+      alert('Failed to send email.');
+    } finally {
+      setSending(false);
+    }
+  };
+
   return (
     <div className="bg-[#0F1623] rounded-xl border border-[#1F2937] p-4">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-white font-medium text-sm">Communication Log</h3>
-        <button className="text-gray-400 hover:text-white" onClick={handleSendTest} disabled={sending}>
+        <button className="text-gray-400 hover:text-white">
           <MoreHorizontal size={16} />
+        </button>
+      </div>
+
+      {/* Send Test Button */}
+      <div className="flex justify-between mb-4">
+        <button
+          onClick={handleSendTest}
+          disabled={sending}
+          className="bg-[#F97316] hover:bg-[#E0620F] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+        >
           {sending ? 'Sending...' : 'Send Test Follow-Up'}
         </button>
       </div>
+
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
