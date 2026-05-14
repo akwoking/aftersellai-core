@@ -1,4 +1,4 @@
-from app.services.openai_service import generate_followup_message
+from app.app.openai_service import generate_followup_message
 
 msg = generate_followup_message(
     product_name="Wireless Headphones",

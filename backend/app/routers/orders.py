@@ -3,8 +3,8 @@ from pydantic import BaseModel
 from datetime import datetime, timezone
 import requests
 from config import SUPABASE_URL, SUPABASE_KEY
-from app.services.openai_service import generate_followup_message
-from app.services.email_service import send_email
+from app.openai_service import generate_followup_message
+from app.email_service import send_email
 
 router = APIRouter()
 

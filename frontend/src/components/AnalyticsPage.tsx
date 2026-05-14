@@ -27,7 +27,6 @@ const revenueWins = [
   { company: 'Lumina Media', product: 'Storage Expansion', value: '$2,100', status: 'PROCESSING' },
 ];
 
-// KPI card sub‑component (presentational)
 const KpiCard = ({ title, value, change }: { title: string; value: string; change: string }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
@@ -47,13 +46,15 @@ export default function AnalyticsPage() {
     const fetchData = async () => {
       try {
         const res = await api.get('/analytics');
+        const data = res.data || {};
         setKpi({
-          total: res.data.total_messages,
-          conversion: res.data.conversion_rate,
-          efficiency: res.data.ai_efficiency,
+          total: data.total_messages ?? 0,
+          conversion: data.conversion_rate ?? 0,
+          efficiency: data.ai_efficiency ?? 0,
         });
       } catch (err) {
-        console.error(err);
+        console.error('Analytics fetch error:', err);
+        // keep default zero values
       }
     };
     fetchData();
@@ -63,11 +64,22 @@ export default function AnalyticsPage() {
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
       <h2 className="text-white text-xl font-semibold">Analytics</h2>
 
-      {/* ✅ KPI Cards now use real state */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <KpiCard title="Total Messages" value={kpi.total.toLocaleString()} change="+12.5%" />
-        <KpiCard title="Conversion Rate" value={`${kpi.conversion}%`} change="+3.2%" />
-        <KpiCard title="AI Efficiency" value={`${kpi.efficiency}%`} change="+0.8%" />
+        <KpiCard
+          title="Total Messages"
+          value={kpi.total != null ? kpi.total.toLocaleString() : '0'}
+          change="+12.5%"
+        />
+        <KpiCard
+          title="Conversion Rate"
+          value={`${kpi.conversion != null ? kpi.conversion : 0}%`}
+          change="+3.2%"
+        />
+        <KpiCard
+          title="AI Efficiency"
+          value={`${kpi.efficiency != null ? kpi.efficiency : 0}%`}
+          change="+0.8%"
+        />
       </div>
 
       {/* Charts Row */}
