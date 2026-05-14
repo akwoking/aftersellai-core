@@ -3,51 +3,84 @@ import { Save } from 'lucide-react';
 import api from '../services/api';
 import { useEffect, useState } from 'react';
 
+// ---------- localStorage cache helper ----------
+const loadCachedSettings = () => {
+  try {
+    const cached = localStorage.getItem('aftersell-settings');
+    if (cached) {
+      return JSON.parse(cached);
+    }
+  } catch (e) {
+    // ignore corrupted cache
+  }
+  // fallback defaults (used on very first visit)
+  return {
+    tone: 'friendly',
+    custom_prompt:
+      'You are a senior support strategist at AfterSell AI. Your goal is to provide high-level assistance that feels human and expert. Always prioritize clarity over jargon. If you cannot solve a problem immediately, acknowledge the complexity and provide a realistic timeline for escalation.',
+    delay_seconds: 45,
+    enabled: true,
+  };
+};
+
 export default function SettingsPage() {
-  const [enabled, setEnabled] = useState(true);
-  const [tone, setTone] = useState('professional');
-  const [customPrompt, setCustomPrompt] = useState(
-    'You are a senior support strategist at AfterSell AI. Your goal is to provide high-level assistance that feels human and expert. Always prioritize clarity over jargon. If you cannot solve a problem immediately, acknowledge the complexity and provide a realistic timeline for escalation.'
-  );
-  const [delay, setDelay] = useState(45);
+  const cachedDefaults = loadCachedSettings();
+
+  const [enabled, setEnabled] = useState(cachedDefaults.enabled);
+  const [tone, setTone] = useState(cachedDefaults.tone);
+  const [customPrompt, setCustomPrompt] = useState(cachedDefaults.custom_prompt);
+  const [delay, setDelay] = useState(cachedDefaults.delay_seconds);
   const [loading, setLoading] = useState(false);
 
-  // Load settings on page mount
+  // ---------- Persist any change immediately to localStorage ----------
   useEffect(() => {
-      const fetchSettings = async () => {
-          try {
-              const res = await api.get('/settings');
-              const data = res.data;
-              if (data) {
-                  setEnabled(data.enabled || false);
-                  setTone(data.tone || 'professional');
-                  setCustomPrompt(data.custom_prompt || '');
-                  setDelay(data.delay_seconds || 45);
-              }
-          } catch (err) {
-              console.error('Failed to load settings:', err);
-          }
-      };
-      fetchSettings();
+    const current = {
+      tone,
+      custom_prompt: customPrompt,   // FIXED: use customPrompt variable
+      delay_seconds: delay,
+      enabled,
+    };
+    localStorage.setItem('aftersell-settings', JSON.stringify(current));
+  }, [tone, customPrompt, delay, enabled]);
+
+  // ---------- Backend sync (does not overwrite if values match) ----------
+  useEffect(() => {
+    let cancelled = false;
+    const fetchSettings = async () => {
+      try {
+        const res = await api.get('/settings');
+        const data = res.data;
+        if (data && !cancelled) {
+          setEnabled(prev => (data.enabled != null && data.enabled !== prev) ? data.enabled : prev);
+          setTone(prev => (data.tone && data.tone !== prev) ? data.tone : prev);
+          setCustomPrompt(prev => (data.custom_prompt && data.custom_prompt !== prev) ? data.custom_prompt : prev);
+          setDelay(prev => (data.delay_seconds != null && data.delay_seconds !== prev) ? data.delay_seconds : prev);
+        }
+      } catch (err) {
+        console.error('Failed to load settings:', err);
+      }
+    };
+    fetchSettings();
+    return () => { cancelled = true; };
   }, []);
 
-
+  // ----- save handler -----
   const handleSave = async () => {
-      setLoading(true);
-      try {
-          await api.put('/settings', {
-              tone,
-              custom_prompt: customPrompt,
-              delay_seconds: delay,
-              enabled
-          });
-          alert('Settings saved!');
-      } catch (err) {
-          console.error('Failed to save settings:', err);
-          alert('Failed to save settings.');
-      } finally {
-          setLoading(false);
-      }
+    setLoading(true);
+    try {
+      await api.put('/settings', {
+        tone,
+        custom_prompt: customPrompt,
+        delay_seconds: delay,
+        enabled,
+      });
+      alert('Settings saved!');
+    } catch (err) {
+      console.error('Failed to save settings:', err);
+      alert('Failed to save settings.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -139,10 +172,11 @@ export default function SettingsPage() {
         {/* Save Button */}
         <div className="pt-4 border-t border-[#1F2937]">
           <button
-              onClick={handleSave}
-              disabled={loading}
-              className="flex items-center gap-2 bg-[#F97316] hover:bg-[#E0620F] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-              {loading ? 'Saving...' : <><Save size={16} /> Save Changes</>}
+            onClick={handleSave}
+            disabled={loading}
+            className="flex items-center gap-2 bg-[#F97316] hover:bg-[#E0620F] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+          >
+            {loading ? 'Saving...' : <><Save size={16} /> Save Changes</>}
           </button>
         </div>
 

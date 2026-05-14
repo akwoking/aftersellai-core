@@ -5,6 +5,7 @@ import { Header } from './components/Header';
 import AnalyticsPage from './components/AnalyticsPage';
 import SettingsPage from './components/SettingsPage';
 import ActivityTable from './components/ActivityTable';
+import DashboardPage from './components/DashboardPage';
 
 export default function App() {
   const [collapsed, setCollapsed] = useState(false);
@@ -55,7 +56,7 @@ export default function App() {
           <Header onMenuClick={() => setMobileOpen(!mobileOpen)} />
           <main className="flex-1 overflow-y-auto p-4 md:p-6">
             <Routes>
-              <Route path="/" element={<AnalyticsPage />} />
+              <Route path="/" element={<DashboardPage />} />
               <Route path="/communication-log" element={<ActivityTable />} />
               <Route path="/analytics" element={<AnalyticsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
