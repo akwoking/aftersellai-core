@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.services.routers import orders
+from backend.routers import settings
+from backend.routers import analytics, orders
 
 app = FastAPI()
 
@@ -15,9 +16,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-app.include_router(orders.router, prefix="/api")
-
+app.include_router(analytics.router, prefix="/api")
+app.include_router(orders.router, prefix="/api")                            
+app.include_router(settings.router, prefix="/api")
 @app.get("/health")
 async def health():
     return {"status": "ok"}

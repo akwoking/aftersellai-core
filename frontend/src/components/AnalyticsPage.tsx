@@ -1,6 +1,9 @@
 import { motion } from 'framer-motion';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { useState, useEffect } from 'react';
+import api from '../services/api';
 
+// Static chart data (will become dynamic in a later phase)
 const messagesPerDay = [
   { name: 'Mon', messages: 1200 },
   { name: 'Tue', messages: 1500 },
@@ -24,6 +27,7 @@ const revenueWins = [
   { company: 'Lumina Media', product: 'Storage Expansion', value: '$2,100', status: 'PROCESSING' },
 ];
 
+// KPI card sub‑component (presentational)
 const KpiCard = ({ title, value, change }: { title: string; value: string; change: string }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
@@ -37,15 +41,33 @@ const KpiCard = ({ title, value, change }: { title: string; value: string; chang
 );
 
 export default function AnalyticsPage() {
+  const [kpi, setKpi] = useState({ total: 0, conversion: 0, efficiency: 0 });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await api.get('/analytics');
+        setKpi({
+          total: res.data.total_messages,
+          conversion: res.data.conversion_rate,
+          efficiency: res.data.ai_efficiency,
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchData();
+  }, []);
+
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
       <h2 className="text-white text-xl font-semibold">Analytics</h2>
 
-      {/* KPI Cards */}
+      {/* ✅ KPI Cards now use real state */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <KpiCard title="Total Messages" value="142,890" change="+12.5%" />
-        <KpiCard title="Conversion Rate" value="24.6%" change="+3.2%" />
-        <KpiCard title="AI Efficiency" value="91.4%" change="+0.8%" />
+        <KpiCard title="Total Messages" value={kpi.total.toLocaleString()} change="+12.5%" />
+        <KpiCard title="Conversion Rate" value={`${kpi.conversion}%`} change="+3.2%" />
+        <KpiCard title="AI Efficiency" value={`${kpi.efficiency}%`} change="+0.8%" />
       </div>
 
       {/* Charts Row */}

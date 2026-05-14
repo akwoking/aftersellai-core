@@ -1,6 +1,7 @@
-import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Save } from 'lucide-react';
+import api from '../services/api';
+import { useEffect, useState } from 'react';
 
 export default function SettingsPage() {
   const [enabled, setEnabled] = useState(true);
@@ -9,10 +10,44 @@ export default function SettingsPage() {
     'You are a senior support strategist at AfterSell AI. Your goal is to provide high-level assistance that feels human and expert. Always prioritize clarity over jargon. If you cannot solve a problem immediately, acknowledge the complexity and provide a realistic timeline for escalation.'
   );
   const [delay, setDelay] = useState(45);
+  const [loading, setLoading] = useState(false);
 
-  const handleSave = () => {
-    // Will connect to backend API later
-    console.log({ enabled, tone, customPrompt, delay });
+  // Load settings on page mount
+  useEffect(() => {
+      const fetchSettings = async () => {
+          try {
+              const res = await api.get('/settings');
+              const data = res.data;
+              if (data) {
+                  setEnabled(data.enabled || false);
+                  setTone(data.tone || 'professional');
+                  setCustomPrompt(data.custom_prompt || '');
+                  setDelay(data.delay_seconds || 45);
+              }
+          } catch (err) {
+              console.error('Failed to load settings:', err);
+          }
+      };
+      fetchSettings();
+  }, []);
+
+
+  const handleSave = async () => {
+      setLoading(true);
+      try {
+          await api.put('/settings', {
+              tone,
+              custom_prompt: customPrompt,
+              delay_seconds: delay,
+              enabled
+          });
+          alert('Settings saved!');
+      } catch (err) {
+          console.error('Failed to save settings:', err);
+          alert('Failed to save settings.');
+      } finally {
+          setLoading(false);
+      }
   };
 
   return (
@@ -104,11 +139,10 @@ export default function SettingsPage() {
         {/* Save Button */}
         <div className="pt-4 border-t border-[#1F2937]">
           <button
-            onClick={handleSave}
-            className="flex items-center gap-2 bg-[#F97316] hover:bg-[#E0620F] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-          >
-            <Save size={16} />
-            Save Changes
+              onClick={handleSave}
+              disabled={loading}
+              className="flex items-center gap-2 bg-[#F97316] hover:bg-[#E0620F] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+              {loading ? 'Saving...' : <><Save size={16} /> Save Changes</>}
           </button>
         </div>
 
