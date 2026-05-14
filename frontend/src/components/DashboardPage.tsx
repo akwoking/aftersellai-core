@@ -1,6 +1,8 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { MessageSquare, TrendingUp } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import api from '../services/api';
 
 const KpiCard = ({ title, value, change }: { title: string; value: string; change: string }) => (
   <motion.div
@@ -15,7 +17,25 @@ const KpiCard = ({ title, value, change }: { title: string; value: string; chang
 );
 
 export default function DashboardPage() {
-  // For simplicity, re‑use the same static KPI data. You can later fetch from the backend.
+  const [kpi, setKpi] = useState({ total: 0, conversion: 0, efficiency: 0 });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await api.get('/analytics');
+        const data = res.data || {};
+        setKpi({
+          total: data.total_messages ?? 0,
+          conversion: data.conversion_rate ?? 0,
+          efficiency: data.ai_efficiency ?? 0,
+        });
+      } catch (err) {
+        console.error('Dashboard fetch error:', err);
+      }
+    };
+    fetchData();
+  }, []);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -29,11 +49,23 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      {/* KPI Cards Row */}
+      {/* KPI Cards Row – now with real data */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <KpiCard title="Total Messages" value="142,890" change="+12.5%" />
-        <KpiCard title="Conversion Rate" value="24.6%" change="+3.2%" />
-        <KpiCard title="AI Efficiency" value="91.4%" change="+0.8%" />
+        <KpiCard
+          title="Total Messages"
+          value={kpi.total != null ? kpi.total.toLocaleString() : '0'}
+          change="+12.5%"
+        />
+        <KpiCard
+          title="Conversion Rate"
+          value={`${kpi.conversion != null ? kpi.conversion : 0}%`}
+          change="+3.2%"
+        />
+        <KpiCard
+          title="AI Efficiency"
+          value={`${kpi.efficiency != null ? kpi.efficiency : 0}%`}
+          change="+0.8%"
+        />
       </div>
 
       {/* Quick Actions */}
