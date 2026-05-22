@@ -66,7 +66,7 @@ export default function ActivityTable() {
     setSending(true);
     try {
       const response = await api.post('/simulate-order', {
-        customer_email: 'akwomakkingguersho@gmail.com',
+        customer_email: 'kingakwomakembe@gmail.com',
         product_name: 'Wireless Bluetooth Headphones',
         related_products: ['Headphone Stand', 'Bluetooth Adapter'],
         tone: 'friendly',

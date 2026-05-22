@@ -3,50 +3,53 @@ import requests
 from config import SUPABASE_URL, SUPABASE_KEY
 from datetime import datetime, timezone
 
-router = APIRouter()
 
+router = APIRouter()
 @router.get("/analytics")
+
+
 def get_analytics():
-    """Return KPI counts and top cross-sold products."""
     try:
-        # Total messages
+        # Count total messages
         total_res = requests.get(
             f"{SUPABASE_URL}/rest/v1/messages?select=count",
-            headers={"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
+            headers={
+                "apikey": SUPABASE_KEY,
+                "Authorization": f"Bearer {SUPABASE_KEY}"
+            }
         )
-        total = int(total_res.headers.get("content-range", "0-0/0").split("/")[-1]) if total_res.status_code == 200 else 0
+        total = 0
+        if total_res.status_code == 200:
+            # The response is a JSON array with a single object: [{"count": N}]
+            data = total_res.json()
+            if isinstance(data, list) and len(data) > 0:
+                total = data[0].get("count", 0)
+        else:
+            print(f"Error counting messages: {total_res.text}")
 
-        # Delivered messages (simplistic: status = 'DELIVERED')
+        # Count delivered messages (optional, for efficiency metric)
         delivered_res = requests.get(
             f"{SUPABASE_URL}/rest/v1/messages?status=eq.DELIVERED&select=count",
-            headers={"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
+            headers={
+                "apikey": SUPABASE_KEY,
+                "Authorization": f"Bearer {SUPABASE_KEY}"
+            }
         )
-        delivered = int(delivered_res.headers.get("content-range", "0-0/0").split("/")[-1]) if delivered_res.status_code == 200 else 0
+        delivered = 0
+        if delivered_res.status_code == 200:
+            ddata = delivered_res.json()
+            if isinstance(ddata, list) and len(ddata) > 0:
+                delivered = ddata[0].get("count", 0)
 
-        # Compute AI efficiency (delivered / total, default 0)
         efficiency = round((delivered / total * 100), 1) if total > 0 else 0.0
-
-        # Revenue wins (mock for now, we'll add revenue tracking later)
-        revenue_wins = [
-            {"company": "Nexus Corp", "product": "Enterprise License", "value": "$12,400", "status": "SETTLED"},
-            {"company": "Velocity Tech", "product": "AI Module Upgrade", "value": "$4,200", "status": "SETTLED"},
-            {"company": "Lumina Media", "product": "Storage Expansion", "value": "$2,100", "status": "PROCESSING"}
-        ]
 
         return {
             "total_messages": total,
-            "conversion_rate": 24.6,        # still mock for now
+            "conversion_rate": 24.6,      # still mock for now
             "ai_efficiency": efficiency,
-            "messages_per_day": [            # mock for now
-                {"name": "Mon", "messages": 1200},
-                {"name": "Tue", "messages": 1500},
-                # ...
-            ],
-            "top_cross_sell": [             # mock
-                {"name": "Cloud Storage Pack", "value": 4200},
-                {"name": "Content Pro", "value": 3800},
-            ],
-            "revenue_wins": revenue_wins
+            "messages_per_day": [],        # mock (can fill later)
+            "top_cross_sell": [],
+            "revenue_wins": []
         }
     except Exception as e:
         return {"error": str(e)}
